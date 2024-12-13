@@ -3,9 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>Keyboard Piano</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+        }
+
+        .piano {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .keys {
+            display: flex;
+            gap: 5px;
+        }
+
+        .key {
+            width: 60px;
+            height: 200px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 0 0 5px 5px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .key.active {
+            background: #e0e0e0;
+            transform: translateY(5px);
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1);
+        }
+
+        .instructions {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <div class="container">
+        <div class="instructions">
+            <h2>Keyboard Piano</h2>
+            <p>Use keys Q to P to play</p>
+        </div>
+        <div class="piano">
+            <div class="keys">
+                <div class="key" data-key="Q">Q</div>
+                <div class="key" data-key="W">W</div>
+                <div class="key" data-key="E">E</div>
+                <div class="key" data-key="R">R</div>
+                <div class="key" data-key="T">T</div>
+                <div class="key" data-key="Y">Y</div>
+                <div class="key" data-key="U">U</div>
+                <div class="key" data-key="I">I</div>
+                <div class="key" data-key="O">O</div>
+                <div class="key" data-key="P">P</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playNote(frequency) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        const notes = {
+            'Q': 261.63, // C4
+            'W': 293.66, // D4
+            'E': 329.63, // E4
+            'R': 349.23, // F4
+            'T': 392.00, // G4
+            'Y': 440.00, // A4
+            'U': 493.88, // B4
+            'I': 523.25, // C5
+            'O': 587.33, // D5
+            'P': 659.25  // E5
+        };
+
+        document.addEventListener('keydown', (event) => {
+            const key = event.key.toUpperCase();
+            if (notes[key]) {
+                const keyElement = document.querySelector(`[data-key="${key}"]`);
+                if (keyElement && !keyElement.classList.contains('active')) {
+                    keyElement.classList.add('active');
+                    playNote(notes[key]);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            const key = event.key.toUpperCase();
+            if (notes[key]) {
+                const keyElement = document.querySelector(`[data-key="${key}"]`);
+                if (keyElement) {
+                    keyElement.classList.remove('active');
+                }
+            }
+        });
+
+        // Handle mouse/touch interactions
+        const keys = document.querySelectorAll('.key');
+        keys.forEach(key => {
+            key.addEventListener('mousedown', () => {
+                const noteKey = key.getAttribute('data-key');
+                if (notes[noteKey]) {
+                    key.classList.add('active');
+                    playNote(notes[noteKey]);
+                }
+            });
+
+            key.addEventListener('mouseup', () => {
+                key.classList.remove('active');
+            });
+
+            key.addEventListener('mouseleave', () => {
+                key.classList.remove('active');
+            });
+        });
+    </script>
 </body>
 </html>
